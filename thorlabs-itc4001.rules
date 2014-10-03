@@ -1,0 +1,2 @@
+# Thorlabs ITC4001
+SUBSYSTEMS=="usb", ACTION=="add", ATTRS{idVendor}=="1313", ATTRS{idProduct}=="804a", MODE="0666"
