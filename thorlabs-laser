@@ -8,7 +8,7 @@ parser.add_argument('--on', action='store_true',
                     help='Turn on laser diode')
 parser.add_argument('--off', action='store_true',
                     help='Turn off laser diode')
-parser.add_argument('-p', '--power', metavar='milliwatts',
+parser.add_argument('-p', '--power', metavar='milliwatts', type=float,
                     help='Turn off laser diode')
 args = parser.parse_args()
 
@@ -17,16 +17,29 @@ dev.write('*IDN?')
 idn = dev.read()
 if not idn.lower().startswith('thorlabs,itc400'):
     raise RuntimeError('Unsupported device: '+idn)
+dev.write('*CLS') # Clear status
+
+def check_error():
+    dev.write('SYST:ERR?')
+    err = dev.read(64)
+    if int(err.split(',')[0][1:]) != 0:
+        print 'Saw error from device: ', err
 
 if args.power is not None:
-    dev.write('SOUR:POW %f' % (p / 1000.))
+    dev.write('SOUR:POW:IMM %4.3f' % (args.power / 1000.))
+    check_error()
 
 if args.off:
     dev.write('OUTP OFF')
+    check_error()
 elif args.on:
     dev.write('OUTP:DEL MIN')
     dev.write('OUTP ON')
     dev.write('OUTP:DEL DEF')
+    check_error()
 else:
     dev.write('OUTP?')
-    print dev.read(1)
+    if dev.read(64) == '0':
+        print 'Output off'
+    else:
+        print 'Output on'
