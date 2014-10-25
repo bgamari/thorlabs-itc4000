@@ -9,7 +9,9 @@ parser.add_argument('--on', action='store_true',
 parser.add_argument('--off', action='store_true',
                     help='Turn off laser diode')
 parser.add_argument('-p', '--power', metavar='milliwatts', type=float,
-                    help='Turn off laser diode')
+                    help='Set power')
+parser.add_argument('-s', '--status', action='store_true',
+                    help='Display device status')
 args = parser.parse_args()
 
 dev = usbtmc('/dev/usbtmc0')
@@ -37,9 +39,13 @@ elif args.on:
     dev.write('OUTP ON')
     dev.write('OUTP:DEL DEF')
     check_error()
-else:
+
+if args.status:
     dev.write('OUTP?')
     if dev.read(64) == '0':
-        print 'Output off'
+        print 'Output: off'
     else:
-        print 'Output on'
+        print 'Output: on'
+
+    dev.write('SOUR:POW?')
+    print 'Power: ', dev.read(64)
